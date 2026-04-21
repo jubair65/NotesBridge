@@ -20,3 +20,6 @@ media/
 # OS files
 .DS_Store
 Thumbs.db
+
+#pycharm folder
+.idea/
