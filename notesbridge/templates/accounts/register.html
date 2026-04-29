@@ -1,0 +1,174 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | NotesBridge</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/notesbridge.css' %}?v=3.1">
+
+</head>
+<body class="register-page">
+    <div class="page-shell">
+        <header class="topbar">
+            <a href="{% url 'home' %}" class="brand" aria-label="NotesBridge home">
+                <span class="brand-mark">
+                    <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                        <rect x="2" y="2" width="44" height="44" rx="14" fill="url(#brandGradient)"/>
+                        <path d="M24 14 35 19.5 24 25 13 19.5 24 14Z" stroke="white" stroke-width="2.2" stroke-linejoin="round"/>
+                        <path d="M17.5 23.2V28.5C17.5 31.4 20.7 33.8 24 33.8C27.3 33.8 30.5 31.4 30.5 28.5V23.2" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+                        <defs>
+                            <linearGradient id="brandGradient" x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#5B47FF"/>
+                                <stop offset="1" stop-color="#3C2BCF"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </span>
+                <span class="brand-copy">
+                    <span class="brand-name">NotesBridge</span>
+                    <span class="brand-tag">Campus Knowledge</span>
+                </span>
+            </a>
+        </header>
+
+        <main class="hero-layout">
+            <section class="hero-copy">
+                <p class="eyebrow">Join the Bridge</p>
+                <h1>Create your student account.</h1>
+                <p class="lead">
+                      Join NotesBridge to upload class notes, discover trusted academic resources,
+                    and grow your karma through meaningful contributions across departments.
+                </p>
+
+                <div class="feature-card">
+                    <div class="feature-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="11" stroke="currentColor" stroke-width="2"/>
+                            <path d="m8.5 12.4 2.2 2.2 4.9-5.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2>Built for the NotesBridge student community</h2>
+                        <p>
+                            Sign up with your department to start browsing subject-based notes,
+                            voting on helpful uploads, and building your reputation inside the platform.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-panel" aria-labelledby="register-title">
+                <div class="form-header">
+                    <h2 id="register-title">Register</h2>
+                    <p>Start sharing and earning karma.</p>
+                </div>
+
+                <form method="post" class="register-form">
+                    {% csrf_token %}
+
+                    <div class="form-grid two-col">
+                        <div class="field">
+                            <label for="first_name">First name</label>
+                            <input
+                                type="text"
+                                id="first_name"
+                                name="first_name"
+                                placeholder="Aarav"
+                                value="{{ form.first_name.value|default:'' }}"
+                                required
+                            >
+                        </div>
+
+                        <div class="field">
+                            <label for="last_name">Last name</label>
+                            <input
+                                type="text"
+                                id="last_name"
+                                name="last_name"
+                                placeholder="Mehta"
+                                value="{{ form.last_name.value|default:'' }}"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="username">Username</label>
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            placeholder="aarav.mehta"
+                            value="{{ form.username.value|default:'' }}"
+                            required
+                        >
+                    </div>
+
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="student@university.edu"
+                            value="{{ form.email.value|default:'' }}"
+                            required
+                        >
+                    </div>
+
+                    <div class="field">
+                        <label for="department">Department</label>
+                        <select id="department" name="department" required>
+                            <option value="" disabled selected>Select a department</option>
+                            {% for value, label in form.fields.department.choices %}
+                                <option value="{{ value }}" {% if form.department.value == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if form.department.errors %}
+                        <span class="error-msg">{{ form.department.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-grid two-col">
+                        <div class="field">
+                            <label for="password">Password</label>
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="Create a strong password"
+                                required
+                            >
+                        </div>
+
+                        <div class="field">
+                            <label for="confirm_password">Confirm password</label>
+                            <input
+                                type="password"
+                                id="confirm_password"
+                                name="confirm_password"
+                                placeholder="Repeat password"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <span>Create account</span>
+                        <span aria-hidden="true">&rarr;</span>
+                    </button>
+
+                    <p class="login-link">
+                        Already have an account?
+                        <a href="{% url 'login' %}">Login</a>
+                    </p>
+                </form>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
