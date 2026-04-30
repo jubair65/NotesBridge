@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'profiles',
     'votes',
     'comments',
+    'reports',
     'notes.apps.NotesConfig',
     'django.contrib.admin',
     'django.contrib.auth',
