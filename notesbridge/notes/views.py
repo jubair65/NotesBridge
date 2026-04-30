@@ -166,3 +166,33 @@ def note_detail_view(request, note_id):
         'downvoted_note_ids': downvoted_note_ids,
         'has_reported': has_reported,
     })
+
+
+@login_required
+def download_zip(request, note_id):
+    note = get_object_or_404(Note, id=note_id)
+    all_files = list(note.additional_files.all())
+
+    if not all_files:
+        return redirect('note_detail', note_id=note_id)
+
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+
+        for nf in all_files:
+            try:
+                zf.write(nf.file.path, os.path.basename(nf.file.name))
+            except:
+                pass
+
+    buffer.seek(0)
+
+    note.downloads += 1
+    note.save()
+    note.uploader.profile.total_downloads += 1
+    note.uploader.profile.save()
+
+    zip_name = note.title.replace(' ', '_') + '_files.zip'
+    response = HttpResponse(buffer, content_type='application/zip')
+    response['Content-Disposition'] = 'attachment; filename="' + zip_name + '"'
+    return response
