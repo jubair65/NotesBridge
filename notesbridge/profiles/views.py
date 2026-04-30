@@ -157,3 +157,40 @@ def edit_profile_view(request):
         form = ProfileUpdateForm(instance=user)
 
     return render(request, 'profiles/edit_profile.html', {'form': form})
+
+
+@login_required
+def leaderboard_view(request):
+    profiles = Profile.objects.select_related('user').order_by('-karma')
+
+
+    all_profiles_list = list(profiles)
+    top_contributor = all_profiles_list[0] if all_profiles_list else None
+    top_karma = top_contributor.karma if top_contributor and top_contributor.karma > 0 else 1
+
+    for i, p in enumerate(all_profiles_list, start=1):
+        p.rank = i
+        p.karma_percentage = min(100, int((p.karma / top_karma) * 100))
+
+    top_3 = all_profiles_list[:3]
+
+    total_karma = Profile.objects.aggregate(total=Sum('karma'))['total'] or 0
+    total_uploads = Note.objects.count()
+    active_scholars = Profile.objects.filter(karma__gt=0).count()
+
+    paginator = Paginator(all_profiles_list, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'top_contributor': top_contributor,
+        'top_3': top_3,
+        'total_karma': total_karma,
+        'total_uploads': total_uploads,
+        'active_scholars': active_scholars,
+    }
+
+    return render(request, 'profiles/leaderboard.html', context)
+
+
