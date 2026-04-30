@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Browse Notes | NotesBridge{% endblock %}
+
+{% block nav_browse %}active{% endblock %}
+
+{% block content %}
+<main class="page-section">
+    <div class="container">
+        <section class="page-title" style="text-align: center; margin-bottom: 48px;">
+            <p class="eyebrow" style="color: var(--indigo); margin-bottom: 12px;">Browse Notes</p>
+            <h1>Browse every shared study resource.</h1>
+            <p class="lead" style="max-width: 600px; margin: 0 auto;">
+                Use focused filters to narrow the full notes library by department, subject, and keywords.
+            </p>
+        </section>
+
+        <form method="GET" action="{% url 'browse_notes' %}" class="filter-panel" aria-label="Search and filters">
+            <input type="search" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search title, topic, department">
+            
+            <select name="department" onchange="this.form.submit()">
+                <option value="">All departments</option>
+                {% for dept in departments %}
+                <option value="{{ dept.id }}" {% if request.GET.department == dept.id|stringformat:"i" %}selected{% endif %}>{{ dept.name }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="subject" onchange="this.form.submit()">
+                <option value="">All subjects</option>
+                {% for sub in subjects %}
+                <option value="{{ sub.id }}" {% if request.GET.subject == sub.id|stringformat:"i" %}selected{% endif %}>{{ sub.name }}</option>
+                {% endfor %}
+            </select>
+            
+            <button type="submit" class="btn btn-light" style="display:none;">Filter</button>
+        </form>
+
+        <div class="row-between" style="margin-bottom: 24px; align-items: center;">
+            <p class="muted">Showing {{ notes|length }} of {{ total_count }} notes</p>
+            <a href="{% url 'browse_notes' %}" class="btn btn-light" style="padding: 8px 16px; font-size: 14px;">Clear filters</a>
+        </div>
+
+        <div class="note-grid">
+            {% for note in notes %}
+            <article class="note-card">
+                <div class="note-card-main">
+                    <div class="stack">
+                        <div class="pill-row">
+                            <span class="tag tag-indigo">{{ note.subject.name }}</span>
+                            <span class="tag tag-orange">{{ note.semester }}</span>
+                        </div>
+                        <a href="{% url 'note_detail' note.id %}" class="note-title">{{ note.title }}</a>
+                        {% if note.is_flagged %}
+                        <div style="color: #ea580c; background: #fff7ed; padding: 4px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; border: 1px solid #ffedd5;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                            ⚠️ This note is under community review
+                        </div>
+                        {% endif %}
+                        <p class="note-description">{{ note.description|truncatewords:15 }}</p>
+                        <p class="note-meta" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span>Uploaded by {{ note.uploader.first_name }} {{ note.uploader.last_name }} • {{ note.subject.department.code }}</span>
+                            <span style="display: inline-flex; align-items: center; gap: 4px; background: #f1f5f9; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; color: #64748b;">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                {{ note.created_at|timesince }} ago
+                            </span>
+                        </p>
+                    </div>
+                    <div class="note-actions">
+                        <a href="{% url 'vote_note' note.id 1 %}" class="action-pill vote-button {% if note.id in upvoted_note_ids %}active{% endif %}" title="Upvote">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                            <strong>{{ note.upvotes }}</strong>
+                        </a>
+                        <a href="{% url 'vote_note' note.id 0 %}" class="action-pill vote-button down {% if note.id in downvoted_note_ids %}active{% endif %}" title="Downvote">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            <strong>{{ note.downvotes }}</strong>
+                        </a>
+                        <a href="{% url 'note_detail' note.id %}" class="action-pill" title="Comments">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                            <strong>{{ note.comment_count }}</strong>
+                        </a>
+                        {% if note.id in reported_note_ids %}
+                        <span class="report-link" style="opacity: 0.5; cursor: not-allowed; color: var(--muted);" title="You have already reported this note">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+                            Reported
+                        </span>
+                        {% else %}
+                        <a href="{% url 'report_note' note.id %}" class="report-link" title="Report">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+                            Report
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+            {% empty %}
+            <div class="empty-state center" style="grid-column: 1 / -1; margin-top: 2rem;">
+                <div style="font-size: 44px; margin-bottom: 12px;">📚</div>
+                <h3>No notes found</h3>
+                <p>Try adjusting your filters or search query.</p>
+                <a href="{% url 'browse_notes' %}" class="btn btn-ghost" style="margin-top: 12px;">Clear all filters</a>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <div class="pagination" style="margin-top: 48px; display: flex; justify-content: center; gap: 8px;">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.subject %}&subject={{ request.GET.subject }}{% endif %}" class="btn btn-light" style="padding: 10px 20px;">&laquo; Previous</a>
+            {% else %}
+                <span class="btn btn-light" style="padding: 10px 20px; opacity: 0.5; pointer-events: none;">&laquo; Previous</span>
+            {% endif %}
+
+            <span class="btn btn-light" style="padding: 10px 20px; background: var(--surface-strong); border-color: var(--indigo); color: var(--indigo); font-weight: bold; pointer-events: none;">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.subject %}&subject={{ request.GET.subject }}{% endif %}" class="btn btn-light" style="padding: 10px 20px;">Next &raquo;</a>
+            {% else %}
+                <span class="btn btn-light" style="padding: 10px 20px; opacity: 0.5; pointer-events: none;">Next &raquo;</span>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</main>
+{% endblock %}
