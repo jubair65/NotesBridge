@@ -30,3 +30,38 @@ def download_note(request, note_id):
         return FileResponse(open(note.file.path, 'rb'), as_attachment=True, filename=os.path.basename(note.file.name))
 
     return redirect('dashboard')
+
+
+@login_required
+def upload_note(request):
+    if request.method == "POST":
+        form = NoteForm(request.POST, request.FILES, user=request.user)
+        if form.is_valid():
+            note = form.save(commit=False)
+            note.uploader = request.user
+
+
+            files = request.FILES.getlist('file')
+
+
+            if len(files) > 10:
+                form.add_error(None, 'You can upload a maximum of 10 files per note.')
+                return render(request, 'notes/upload.html',
+                              {'form': form, 'error': 'You can upload a maximum of 10 files per note.'})
+
+            if files:
+
+                note.file = files[0]
+                note.save()
+
+
+                for f in files:
+                    NoteFile.objects.create(note=note, file=f)
+            else:
+                note.save()
+
+            return redirect('dashboard')
+    else:
+        form = NoteForm(user=request.user)
+
+    return render(request, 'notes/upload.html', {'form': form})
