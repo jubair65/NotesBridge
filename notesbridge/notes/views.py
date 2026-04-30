@@ -98,3 +98,34 @@ def edit_note(request, note_id):
 
     return render(request, 'notes/edit_note.html', {'form': form, 'note': note})
 
+
+@login_required
+def delete_note(request, note_id):
+    note = get_object_or_404(Note, id=note_id)
+
+
+    if note.uploader == request.user:
+        profile = note.uploader.profile
+
+
+        upvotes_count = note.vote_set.filter(vote_type=1).count()
+        downvotes_count = note.vote_set.filter(vote_type=0).count()
+
+
+        profile.total_uploads -= 1
+        profile.total_upvotes -= upvotes_count
+        profile.total_downvotes -= downvotes_count
+        profile.total_downloads -= note.downloads
+
+
+        profile.total_uploads = max(0, profile.total_uploads)
+        profile.total_upvotes = max(0, profile.total_upvotes)
+        profile.total_downvotes = max(0, profile.total_downvotes)
+        profile.total_downloads = max(0, profile.total_downloads)
+
+
+        update_karma(profile)
+
+        note.delete()
+
+    return redirect('profile')
