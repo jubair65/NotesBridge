@@ -143,3 +143,17 @@ def profile_view(request):
     }
 
     return render(request,'profiles/profile.html',context)
+
+@login_required
+def edit_profile_view(request):
+    user = request.user
+
+    if request.method == "POST":
+        form = ProfileUpdateForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect('profile')
+    else:
+        form = ProfileUpdateForm(instance=user)
+
+    return render(request, 'profiles/edit_profile.html', {'form': form})
