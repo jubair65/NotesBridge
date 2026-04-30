@@ -129,3 +129,40 @@ def delete_note(request, note_id):
         note.delete()
 
     return redirect('profile')
+
+
+@login_required
+def note_detail_view(request, note_id):
+    note = Note.objects.annotate(
+        upvotes=Count('vote', filter=Q(vote__vote_type=1)),
+        downvotes=Count('vote', filter=Q(vote__vote_type=0))
+    ).get(id=note_id)
+    comments = note.comments.all().order_by('-created_at')
+
+    form = CommentForm()
+
+    if request.method == "POST":
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.user = request.user
+            comment.note = note
+            comment.save()
+            return redirect('note_detail', note_id=note.id)
+
+
+    user_votes = Vote.objects.filter(user=request.user)
+    upvoted_note_ids = list(user_votes.filter(vote_type=1).values_list('note_id', flat=True))
+    downvoted_note_ids = list(user_votes.filter(vote_type=0).values_list('note_id', flat=True))
+
+
+    has_reported = Report.objects.filter(user=request.user, note=note).exists()
+
+    return render(request, 'notes/note_detail.html', {
+        'note': note,
+        'comments': comments,
+        'form': form,
+        'upvoted_note_ids': upvoted_note_ids,
+        'downvoted_note_ids': downvoted_note_ids,
+        'has_reported': has_reported,
+    })
