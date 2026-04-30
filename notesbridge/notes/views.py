@@ -65,3 +65,36 @@ def upload_note(request):
         form = NoteForm(user=request.user)
 
     return render(request, 'notes/upload.html', {'form': form})
+
+
+@login_required
+def edit_note(request, note_id):
+    note = get_object_or_404(Note, id=note_id)
+
+    if note.uploader != request.user:
+        return redirect('dashboard')
+
+    if request.method == "POST":
+        form = NoteForm(request.POST, request.FILES, instance=note, user=request.user)
+        if form.is_valid():
+            note = form.save()
+
+
+            files = request.FILES.getlist('file')
+            current_count = note.additional_files.count()
+
+
+            if current_count + len(files) > 10:
+                remaining = 10 - current_count
+                error = f'You can only add {remaining} more file(s). This note already has {current_count} attachment(s).'
+                return render(request, 'notes/edit_note.html', {'form': form, 'note': note, 'error': error})
+
+            for f in files:
+                NoteFile.objects.create(note=note, file=f)
+
+            return redirect('profile')
+    else:
+        form = NoteForm(instance=note, user=request.user)
+
+    return render(request, 'notes/edit_note.html', {'form': form, 'note': note})
+
