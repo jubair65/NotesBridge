@@ -70,6 +70,13 @@
                 <form method="post" class="register-form">
                     {% csrf_token %}
 
+                    {% if form.non_field_errors %}
+                        <div class="error-msg" style="margin-bottom: 1rem; color: #d93025;">
+                            {{ form.non_field_errors.0 }}
+                        </div>
+                    {% endif %}
+
+
                     <div class="form-grid two-col">
                         <div class="field">
                             <label for="first_name">First name</label>
@@ -81,6 +88,9 @@
                                 value="{{ form.first_name.value|default:'' }}"
                                 required
                             >
+                            {% if form.first_name.errors %}
+                                <span class="error-msg" style="color: #d93025; font-size: 0.85rem;">{{ form.first_name.errors.0 }}</span>
+                            {% endif %}
                         </div>
 
                         <div class="field">
@@ -93,6 +103,9 @@
                                 value="{{ form.last_name.value|default:'' }}"
                                 required
                             >
+                            {% if form.last_name.errors %}
+                                <span class="error-msg" style="color: #d93025; font-size: 0.85rem;">{{ form.last_name.errors.0 }}</span>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -106,6 +119,9 @@
                             value="{{ form.username.value|default:'' }}"
                             required
                         >
+                        {% if form.username.errors %}
+                            <span class="error-msg" style="color: #d93025; font-size: 0.85rem;">{{ form.username.errors.0 }}</span>
+                        {% endif %}
                     </div>
 
                     <div class="field">
@@ -118,6 +134,9 @@
                             value="{{ form.email.value|default:'' }}"
                             required
                         >
+                        {% if form.email.errors %}
+                            <span class="error-msg" style="color: #d93025; font-size: 0.85rem;">{{ form.email.errors.0 }}</span>
+                        {% endif %}
                     </div>
 
                     <div class="field">
@@ -143,6 +162,9 @@
                                 placeholder="Create a strong password"
                                 required
                             >
+                            {% if form.password.errors %}
+                                <span class="error-msg" style="color: #d93025; font-size: 0.85rem;">{{ form.password.errors.0 }}</span>
+                            {% endif %}
                         </div>
 
                         <div class="field">
@@ -154,6 +176,9 @@
                                 placeholder="Repeat password"
                                 required
                             >
+                            {% if form.confirm_password.errors %}
+                                <span class="error-msg" style="color: #d93025; font-size: 0.85rem;">{{ form.confirm_password.errors.0 }}</span>
+                            {% endif %}
                         </div>
                     </div>
 
