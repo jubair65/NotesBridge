@@ -1,3 +1,5 @@
+from django.contrib import messages
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Count
 from django.shortcuts import render, redirect
@@ -194,3 +196,13 @@ def leaderboard_view(request):
     return render(request, 'profiles/leaderboard.html', context)
 
 
+@login_required
+def delete_account_view(request):
+    if request.method == "POST":
+        user = request.user
+        logout(request)
+        user.delete()
+        messages.success(request, "Your account has been successfully deleted.")
+        return redirect('home')
+
+    return redirect('edit_profile')
